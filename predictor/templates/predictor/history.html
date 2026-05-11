@@ -1,0 +1,245 @@
+{% extends "predictor/base.html" %}
+
+{% block title %}MindCheck — Assessment History{% endblock %}
+
+{% block extra_head %}
+<style>
+  /* Summary cards */
+  .summary-cards {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-bottom: 2rem;
+  }
+
+  @media (max-width: 540px) {
+    .summary-cards { grid-template-columns: 1fr; }
+  }
+
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.5rem;
+    text-align: center;
+    box-shadow: var(--shadow);
+  }
+
+  .stat-card .count {
+    font-family: 'DM Serif Display', serif;
+    font-size: 2.2rem;
+    line-height: 1;
+    display: block;
+    margin-bottom: 4px;
+  }
+
+  .stat-card .label {
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-weight: 700;
+  }
+
+  .stat-low    .count { color: var(--low); }
+  .stat-medium .count { color: var(--medium); }
+  .stat-high   .count { color: var(--high); }
+  .stat-low    .label { color: #15803d; }
+  .stat-medium .label { color: #a16207; }
+  .stat-high   .label { color: #b91c1c; }
+
+  /* Table */
+  .table-wrap {
+    overflow-x: auto;
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow);
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.875rem;
+    background: var(--surface);
+  }
+
+  thead {
+    background: var(--paper);
+    border-bottom: 1px solid var(--border);
+  }
+
+  th {
+    padding: 12px 16px;
+    text-align: left;
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink-muted);
+    white-space: nowrap;
+  }
+
+  td {
+    padding: 13px 16px;
+    color: var(--ink-soft);
+    border-top: 1px solid var(--border);
+    vertical-align: middle;
+  }
+
+  tr:hover td {
+    background: var(--paper);
+  }
+
+  .td-id {
+    color: var(--ink-muted);
+    font-size: 0.78rem;
+    font-weight: 600;
+  }
+
+  .td-main {
+    font-weight: 600;
+    color: var(--ink);
+  }
+
+  /* Empty state */
+  .empty-state {
+    text-align: center;
+    padding: 4rem 2rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+  }
+
+  .empty-icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    display: block;
+  }
+
+  .empty-state h2 {
+    margin-bottom: 0.5rem;
+  }
+
+  /* Pagination */
+  .pagination {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    margin-top: 1.5rem;
+  }
+
+  .page-info {
+    font-size: 0.85rem;
+    color: var(--ink-muted);
+  }
+
+  /* Delete form inline */
+  .delete-form {
+    display: inline;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-header fade-up">
+  <h1>Assessment History</h1>
+  <p class="subtitle">All past predictions stored in the database.</p>
+</div>
+
+{% if total > 0 %}
+<!-- Summary stats -->
+<div class="summary-cards fade-up fade-up-delay-1">
+  <div class="stat-card stat-low">
+    <span class="count">{{ low_count }}</span>
+    <span class="label">Low Risk</span>
+  </div>
+  <div class="stat-card stat-medium">
+    <span class="count">{{ medium_count }}</span>
+    <span class="label">Medium Risk</span>
+  </div>
+  <div class="stat-card stat-high">
+    <span class="count">{{ high_count }}</span>
+    <span class="label">High Risk</span>
+  </div>
+</div>
+
+<!-- Results table -->
+<div class="table-wrap fade-up fade-up-delay-2">
+  <table>
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Risk</th>
+        <th>Age</th>
+        <th>Gender</th>
+        <th>CGPA</th>
+        <th>Acad. Pressure</th>
+        <th>Work Pressure</th>
+        <th>Sleep</th>
+        <th>Score</th>
+        <th>Date</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for r in results %}
+      <tr>
+        <td class="td-id">{{ r.id }}</td>
+        <td>
+          {% if r.prediction == 'Low' %}
+            <span class="badge badge-low">Low</span>
+          {% elif r.prediction == 'Medium' %}
+            <span class="badge badge-medium">Medium</span>
+          {% else %}
+            <span class="badge badge-high">High</span>
+          {% endif %}
+        </td>
+        <td class="td-main">{{ r.age }}</td>
+        <td>{{ r.gender }}</td>
+        <td>{{ r.cgpa }}</td>
+        <td>{{ r.academic_pressure }}/5</td>
+        <td>{{ r.work_pressure }}/5</td>
+        <td style="white-space: nowrap; font-size: 0.8rem;">{{ r.sleep_duration }}</td>
+        <td>{{ r.prediction_score|floatformat:2 }}</td>
+        <td style="white-space: nowrap; font-size: 0.78rem; color: var(--ink-muted);">
+          {{ r.created_at|date:"M d, Y H:i" }}
+        </td>
+        <td>
+          <a href="{% url 'result' r.pk %}" class="btn btn-outline" style="padding: 5px 12px; font-size: 0.78rem;">View</a>
+          <form method="post" action="{% url 'delete_result' r.pk %}" class="delete-form"
+                onsubmit="return confirm('Delete this record?');">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger">Delete</button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<!-- Pagination -->
+{% if total_pages > 1 %}
+<div class="pagination">
+  {% if has_prev %}
+    <a href="?page={{ page|add:'-1' }}" class="btn btn-outline" style="padding: 8px 16px; font-size: 0.85rem;">← Prev</a>
+  {% endif %}
+  <span class="page-info">Page {{ page }} of {{ total_pages }} &nbsp;({{ total }} records)</span>
+  {% if has_next %}
+    <a href="?page={{ page|add:'1' }}" class="btn btn-outline" style="padding: 8px 16px; font-size: 0.85rem;">Next →</a>
+  {% endif %}
+</div>
+{% endif %}
+
+{% else %}
+<!-- Empty state -->
+<div class="empty-state fade-up fade-up-delay-1">
+  <span class="empty-icon">📋</span>
+  <h2>No assessments yet</h2>
+  <p style="margin-bottom: 1.5rem;">Take your first assessment and your results will appear here.</p>
+  <a href="{% url 'home' %}" class="btn btn-primary">Start Assessment →</a>
+</div>
+{% endif %}
+
+{% endblock %}

@@ -1,0 +1,277 @@
+{% extends "predictor/base.html" %}
+
+{% block title %}MindCheck — Your Result{% endblock %}
+
+{% block extra_head %}
+<style>
+  .result-hero {
+    border-radius: var(--radius);
+    border: 1px solid {{ meta.border }};
+    background: {{ meta.bg }};
+    padding: 2.5rem;
+    text-align: center;
+    margin-bottom: 2rem;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .result-emoji {
+    font-size: 3rem;
+    margin-bottom: 0.75rem;
+    display: block;
+  }
+
+  .result-badge {
+    display: inline-block;
+    padding: 6px 18px;
+    border-radius: 99px;
+    font-size: 0.82rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: {{ meta.color }};
+    background: {{ meta.border }};
+    margin-bottom: 1rem;
+  }
+
+  .result-hero h1 {
+    font-size: clamp(1.6rem, 3vw, 2.2rem);
+    color: var(--ink);
+    margin-bottom: 0.5rem;
+  }
+
+  .result-hero p {
+    max-width: 480px;
+    margin: 0 auto;
+    font-size: 0.97rem;
+  }
+
+  /* Score bar */
+  .score-bar-wrap {
+    margin-top: 1.5rem;
+    max-width: 340px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .score-bar-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--ink-muted);
+    margin-bottom: 6px;
+  }
+
+  .score-bar-track {
+    height: 8px;
+    background: #e5e7eb;
+    border-radius: 99px;
+    overflow: hidden;
+  }
+
+  .score-bar-fill {
+    height: 100%;
+    width: {{ score_percent }}%;
+    background: {{ meta.color }};
+    border-radius: 99px;
+    transition: width 1s ease;
+  }
+
+  /* Input summary */
+  .summary-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 12px;
+    margin-bottom: 0;
+  }
+
+  .summary-item {
+    background: var(--paper);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 14px;
+    text-align: center;
+  }
+
+  .summary-item .s-val {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--accent);
+    display: block;
+    margin-bottom: 2px;
+  }
+
+  .summary-item .s-key {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--ink-muted);
+    font-weight: 600;
+  }
+
+  /* Explanation */
+  .explanation-lines p {
+    margin-bottom: 0.75rem;
+    font-size: 0.95rem;
+    color: var(--ink-soft);
+    line-height: 1.7;
+  }
+
+  /* Recommendations */
+  .rec-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 16px;
+  }
+
+  .rec-card {
+    background: var(--paper);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 18px;
+    transition: box-shadow 0.15s, transform 0.15s;
+  }
+
+  .rec-card:hover {
+    box-shadow: var(--shadow);
+    transform: translateY(-2px);
+  }
+
+  .rec-icon {
+    font-size: 1.5rem;
+    margin-bottom: 8px;
+    display: block;
+  }
+
+  .rec-title {
+    font-weight: 700;
+    font-size: 0.95rem;
+    color: var(--ink);
+    margin-bottom: 6px;
+  }
+
+  .rec-detail {
+    font-size: 0.83rem;
+    color: var(--ink-muted);
+    line-height: 1.6;
+  }
+
+  /* Actions */
+  .action-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 2rem;
+  }
+
+  /* Section header */
+  .section-head {
+    margin-bottom: 1.25rem;
+  }
+
+  .section-head h2 {
+    margin-bottom: 0.25rem;
+  }
+
+  .section-head p {
+    font-size: 0.88rem;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- Result Hero -->
+<div class="result-hero fade-up">
+  <span class="result-emoji">{{ meta.emoji }}</span>
+  <div class="result-badge">{{ meta.badge }}</div>
+  <h1>Your Risk Level: {{ result.prediction }}</h1>
+  <p>{{ meta.message }}</p>
+  <div class="score-bar-wrap">
+    <div class="score-bar-label">
+      <span>Low</span>
+      <span>Risk score: {{ score_percent }}%</span>
+      <span>High</span>
+    </div>
+    <div class="score-bar-track">
+      <div class="score-bar-fill"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Input Summary -->
+<div class="card fade-up fade-up-delay-1" style="margin-bottom: 1.5rem;">
+  <div class="section-head">
+    <h2>Your Inputs</h2>
+    <p>Here's a summary of what you entered.</p>
+  </div>
+  <div class="summary-grid">
+    <div class="summary-item">
+      <span class="s-val">{{ result.age }}</span>
+      <span class="s-key">Age</span>
+    </div>
+    <div class="summary-item">
+      <span class="s-val">{{ result.gender }}</span>
+      <span class="s-key">Gender</span>
+    </div>
+    <div class="summary-item">
+      <span class="s-val">{{ result.cgpa }}</span>
+      <span class="s-key">CGPA</span>
+    </div>
+    <div class="summary-item">
+      <span class="s-val">{{ result.academic_pressure }}/5</span>
+      <span class="s-key">Academic Pressure</span>
+    </div>
+    <div class="summary-item">
+      <span class="s-val">{{ result.work_pressure }}/5</span>
+      <span class="s-key">Work Pressure</span>
+    </div>
+    <div class="summary-item">
+      <span class="s-val">{{ result.study_satisfaction }}/5</span>
+      <span class="s-key">Study Satisfaction</span>
+    </div>
+    <div class="summary-item" style="grid-column: span 1;">
+      <span class="s-val" style="font-size:0.9rem;">{{ result.sleep_duration }}</span>
+      <span class="s-key">Sleep</span>
+    </div>
+  </div>
+</div>
+
+<!-- Explanation -->
+<div class="card fade-up fade-up-delay-2" style="margin-bottom: 1.5rem;">
+  <div class="section-head">
+    <h2>What This Means</h2>
+    <p>A breakdown of how your responses shaped this result.</p>
+  </div>
+  <div class="explanation-lines">
+    {% for line in explanation_lines %}
+      <p>{{ line|safe }}</p>
+    {% endfor %}
+  </div>
+</div>
+
+<!-- Recommendations -->
+<div class="card fade-up fade-up-delay-3" style="margin-bottom: 2rem;">
+  <div class="section-head">
+    <h2>Personalised Recommendations</h2>
+    <p>Actionable steps tailored to your responses.</p>
+  </div>
+  <div class="rec-grid">
+    {% for rec in recommendations %}
+      <div class="rec-card">
+        <span class="rec-icon">{{ rec.icon }}</span>
+        <div class="rec-title">{{ rec.title }}</div>
+        <div class="rec-detail">{{ rec.detail }}</div>
+      </div>
+    {% endfor %}
+  </div>
+</div>
+
+<!-- Action buttons -->
+<div class="action-row">
+  <a href="{% url 'home' %}" class="btn btn-primary">← Take Another Assessment</a>
+  <a href="{% url 'history' %}" class="btn btn-outline">View History</a>
+</div>
+
+{% endblock %}
